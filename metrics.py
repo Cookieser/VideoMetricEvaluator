@@ -3,11 +3,13 @@ import cv2
 import lpips
 import torch
 from skimage.metrics import structural_similarity as ssim
+import warnings
+warnings.filterwarnings("ignore")
 
 class MetricEvaluator:
     def __init__(self, device):
         self.device = device
-        self.lpips_model = lpips.LPIPS(net='alex').to(device)
+        self.lpips_model = lpips.LPIPS(net='alex', pretrained=True).to(device)
 
 
     def compute_psnr(self, ref, dist):
