@@ -52,6 +52,45 @@ class MetricEvaluator:
 
     
 
+    def compute_fvd(self,videos1, videos2, method='styleganv'):
+
+
+        if method == 'styleganv':
+            from fvd.styleganv.fvd import get_fvd_feats, frechet_distance, load_i3d_pretrained
+        elif method == 'videogpt':
+            from fvd.videogpt.fvd import load_i3d_pretrained, frechet_distance
+            from fvd.videogpt.fvd import get_fvd_logits as get_fvd_feats
+
+        print("calculate_fvd...")
+
+        # videos [batch_size, timestamps, channel, h, w]
+        
+        assert videos1.shape == videos2.shape
+
+        i3d = load_i3d_pretrained(device=self.device)
+        fvd_results = []
+
+        # support grayscale input, if grayscale -> channel*3
+        # BTCHW -> BCTHW
+        # videos -> [batch_size, channel, timestamps, h, w]
+
+        videos1 = self.normalize_for_fvd(videos1)
+        videos2 = self.normalize_for_fvd(videos2)
+
+        assert videos1.shape[2] >= 10, "for calculate FVD, each clip_timestamp must >= 10"
+
+        # videos [batch_size, channel, timestamps, h, w]
+        # get FVD features
+        feats1 = get_fvd_feats(videos1, i3d=i3d, device=self.device)
+        feats2 = get_fvd_feats(videos2, i3d=i3d, device=self.device)
+
+        # calculate FVD
+        fvd_result = frechet_distance(feats1, feats2)
+        
+        return fvd_result
+
+    
+
 
     def evaluate(self, videos1, videos2, metrics=["psnr", "ssim", "lpips"], average=True):
 
@@ -70,6 +109,9 @@ class MetricEvaluator:
 
         results = {m: [] for m in metrics}
 
+        if "fvd" in metrics:
+            fvd_val = self.compute_fvd(videos1, videos2, method='styleganv')
+            results["fvd"].append(fvd_val)
 
         for t in range(T):
             frame1_np = videos1[:, t].cpu().numpy()
@@ -97,3 +139,10 @@ class MetricEvaluator:
     
     def normalize_for_lpips(self, x):
         return ((x.float() / 255.0) * 2 - 1).to(self.device)
+
+    def normalize_for_fvd(self, video_tensor):
+        video_tensor = video_tensor.float()/ 255.0
+        video_tensor = video_tensor.permute(0, 2, 1, 3, 4)
+        mean = torch.tensor([0.5, 0.5, 0.5], device=video_tensor.device).view(1, 3, 1, 1, 1)
+        std = torch.tensor([0.5, 0.5, 0.5], device=video_tensor.device).view(1, 3, 1, 1, 1)
+        return (video_tensor - mean) / std
