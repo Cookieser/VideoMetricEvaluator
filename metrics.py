@@ -22,7 +22,7 @@ class MetricEvaluator:
         ref = ref.astype(np.float32)
         dist = dist.astype(np.float32)
         
-        mse = np.mean((ref - dist) ** 2, axis=(-2, -1))  # shape: (B, C)
+        mse = np.mean((ref - dist) ** 2, axis=(1,2,3))  # shape: (B, )
         
         # Avoid log(0): if mse == 0, set PSNR = inf
         with np.errstate(divide='ignore'):
@@ -49,6 +49,33 @@ class MetricEvaluator:
             scores = self.lpips_model(frames1, frames2)  # [B, 1, 1, 1]
             mean_score = scores.view(B).mean().item()
         return mean_score
+
+
+
+    '''
+    Learning Temporal Coherence via Self-Supervision for GAN-based Video Generation
+    https://arxiv.org/abs/1811.09393
+    https://github.com/thunil/TecoGAN/blob/master/metrics.py
+    
+    '''
+
+    def calculate_tlp100(self, videos1, videos2, t):
+        """
+        Compute temporal LPIPS difference × 100 between frame t-1 and t.
+        
+        Args:
+            videos1, videos2: [B, T, C, H, W] tensors
+            t: int, current time step (must be ≥ 1)
+
+        Returns:
+            scalar float: tLP100 score at time t
+        """
+        gt_lpips = self.calculate_lpips(videos1[:, t-1], videos1[:, t])
+        out_lpips = self.calculate_lpips(videos2[:, t-1], videos2[:, t])
+        score = abs(gt_lpips - out_lpips) * 100
+        return score
+
+  
 
     
 
@@ -92,6 +119,7 @@ class MetricEvaluator:
     
 
 
+
     def evaluate(self, videos1, videos2, metrics=["psnr", "ssim", "lpips"], average=True):
 
         """
@@ -131,14 +159,20 @@ class MetricEvaluator:
                     ssim_val = self.compute_ssim(frame1_np[b].transpose(1, 2, 0), frame2_np[b].transpose(1, 2, 0)) # C,H,W -> H,W,C
                     ssim_vals.append(ssim_val)
                 results["ssim"].append(np.mean(ssim_vals))
+            
+            if "tlp" in metrics and t > 0:
+                tlp_val = self.calculate_tlp100(videos1, videos2, t)
+                results["tlp"].append(tlp_val)
+            
         
         if average:
+            # return {k: (sum(v)/len(v) if len(v) > 0 else None) for k, v in results.items()}
             return {k: sum(v)/len(v) for k, v in results.items()}
         return results
 
     
     def normalize_for_lpips(self, x):
-        return ((x.float() / 255.0) * 2 - 1).to(self.device)
+        return ((x.float() / 255.0) * 2 - 1)
 
     def normalize_for_fvd(self, video_tensor):
         video_tensor = video_tensor.float()/ 255.0
@@ -146,3 +180,4 @@ class MetricEvaluator:
         mean = torch.tensor([0.5, 0.5, 0.5], device=video_tensor.device).view(1, 3, 1, 1, 1)
         std = torch.tensor([0.5, 0.5, 0.5], device=video_tensor.device).view(1, 3, 1, 1, 1)
         return (video_tensor - mean) / std
+    

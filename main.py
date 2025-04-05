@@ -47,7 +47,7 @@ evaluator = MetricEvaluator(device)
 
 videos1, videos2 = video_tensor,noisy_video
 
-results = evaluator.evaluate(videos1, videos2, metrics=["psnr", "ssim", "lpips","fvd"])
+results = evaluator.evaluate(videos1, videos2, metrics=["psnr", "ssim", "lpips", "fvd", "tlp"])
 
 print("Result:")
 for metric, value in results.items():
