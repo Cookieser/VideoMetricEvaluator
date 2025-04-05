@@ -54,7 +54,7 @@ print("Result:")
 for metric, value in results.items():
     print(f"{metric.upper()}: {value:.4f}")
 ```
-
+![image-20250405111134175](https://pic-1306483575.cos.ap-nanjing.myqcloud.com/image-20250405111134175.png)
 ------
 
 ## 📦 依赖项
