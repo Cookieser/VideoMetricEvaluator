@@ -10,7 +10,6 @@ This project provides a unified interface `MetricEvaluator` for evaluating multi
 
 It supports full video processing in `[B, T, C, H, W]` format and automatically handles frame-wise or global evaluations.
 
-------
 
 ## 🚀 Quick Start
 
@@ -55,7 +54,6 @@ for metric, value in results.items():
     print(f"{metric.upper()}: {value:.4f}")
 ```
 ![image-20250405111134175](https://pic-1306483575.cos.ap-nanjing.myqcloud.com/image-20250405111134175.png)
-------
 
 ## 📦 Dependencies
 
@@ -65,7 +63,6 @@ Install required packages:
 pip install opencv-python torch torchvision lpips scikit-image
 ```
 
-------
 
 ## 🧠 Supported Metrics
 
@@ -77,7 +74,6 @@ pip install opencv-python torch torchvision lpips scikit-image
 | `fvd`   | Frechet Video Distance. Measures overall video quality difference (requires I3D).     |
 | `tlp`   | Temporal LPIPS. Evaluates temporal consistency, inspired by [TecoGAN](https://arxiv.org/abs/1811.09393) |
 
-------
 
 ## 📁 Project Structure
 
@@ -89,8 +85,6 @@ project/
 └── fvd/
     └── styleganv/         # FVD dependency modules
 ```
-
-------
 
 ## 📌 Notes
 
