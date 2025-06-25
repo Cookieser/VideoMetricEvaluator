@@ -91,3 +91,16 @@ project/
 - All input videos must be in [B, T, C, H, W] format with pixel values in [0, 255].
 - LPIPS and FVD use alex and styleganv backbones by default. Modify parameters to change.
 - For FVD evaluation, each clip must have at least T ≥ 10 frames.
+
+
+## Citation
+
+If you find our work useful for your research, please consider citing the paper
+```
+@article{jiang2025videomarkbench,
+  title={VideoMarkBench: Benchmarking Robustness of Video Watermarking},
+  author={Jiang, Zhengyuan and Guo, Moyang and Li, Kecen and Hu, Yuepeng and Wang, Yupu and Huang, Zhicong and Hong, Cheng and Gong, Neil Zhenqiang},
+  journal={arXiv preprint arXiv:2505.21620},
+  year={2025}
+}
+```
